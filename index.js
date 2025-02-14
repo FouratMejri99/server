@@ -74,11 +74,7 @@ app.delete("/delete-user-stock/:symbol", authenticateUser, async (req, res) => {
 const { exec } = require("child_process");
 
 app.get("/get-stock-data", (req, res) => {
-  // Call Python script
-  const command = `python fetch_data.py`;
-  console.log("Executing command:", command);
-
-  exec(command, (error, stdout, stderr) => {
+  exec(`python fetch_data.py`, (error, stdout, stderr) => {
     if (error) {
       console.error(`exec error: ${error.message}`);
       console.error(`Full error: ${error}`);
@@ -98,6 +94,7 @@ app.get("/get-stock-data", (req, res) => {
     }
   });
 });
+
 // Get Sector Allocation for a Stock
 app.get("/get-sector-allocation/:symbol", (req, res) => {
   const symbol = req.params.symbol;
