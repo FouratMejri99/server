@@ -4,7 +4,8 @@ const bcrypt = require("bcryptjs");
 const cors = require("cors");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
-
+const { spawn } = require("child_process");
+const path = require("path");
 const app = express();
 
 const User = require("./models/user.models");
@@ -71,25 +72,35 @@ app.delete("/delete-user-stock/:symbol", authenticateUser, async (req, res) => {
 });
 
 // Get Real-time Data for a Stock
-const { exec } = require("child_process");
-
 app.get("/get-stock-data", (req, res) => {
-  exec(`python fetch_data.py`, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`exec error: ${error.message}`);
-      console.error(`Full error: ${error}`);
-      return res.status(500).send(`Error executing script: ${error.message}`);
-    }
-    if (stderr) {
-      console.error(`stderr: ${stderr}`);
-      return res.status(500).send(`Script error: ${stderr}`);
+  const scriptPath = path.join(__dirname, "fetch_data.py");
+
+  const pythonProcess = spawn("python", [scriptPath]);
+
+  let output = "";
+  let errorOutput = "";
+
+  pythonProcess.stdout.on("data", (data) => {
+    output += data.toString();
+  });
+
+  pythonProcess.stderr.on("data", (data) => {
+    errorOutput += data.toString();
+  });
+
+  pythonProcess.on("close", (code) => {
+    if (code !== 0) {
+      console.error(`Python script exited with code ${code}`);
+      return res
+        .status(500)
+        .send(`Script error: ${errorOutput || "Unknown error"}`);
     }
 
     try {
-      const data = JSON.parse(stdout.trim());
-      res.json(data);
+      const jsonData = JSON.parse(output.trim());
+      res.json(jsonData);
     } catch (parseError) {
-      console.error(`JSON parse error: ${parseError}`);
+      console.error(`JSON Parse Error: ${parseError}`);
       res.status(500).send("Invalid JSON output from script.");
     }
   });
