@@ -12,7 +12,11 @@ const User = require("./models/user.models");
 // Middleware
 
 const corsOptions = {
-  origin: ["https://stockio-topaz.vercel.app", "http://localhost:5000"], // Allow frontend & local testing
+  origin: [
+    "https://stockio-topaz.vercel.app",
+    "http://localhost:5000",
+    "https://server-pbhy.vercel.app/",
+  ], // Allow frontend & local testing
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true, // Allow cookies & authentication
   allowedHeaders: ["Content-Type", "Authorization"],
