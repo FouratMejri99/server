@@ -74,15 +74,21 @@ app.delete("/delete-user-stock/:symbol", authenticateUser, async (req, res) => {
 app.get("/get-stock-data", (req, res) => {
   exec(`python fetch_data.py`, (error, stdout, stderr) => {
     if (error) {
-      console.error(`exec error: ${error}`);
-      return res.status(500).send("Error fetching stock data.");
+      console.error(`exec error: ${error.message}`);
+      return res.status(500).send(`Error executing script: ${error.message}`);
     }
     if (stderr) {
       console.error(`stderr: ${stderr}`);
-      return res.status(500).send("Error fetching stock data.");
+      return res.status(500).send(`Script error: ${stderr}`);
     }
 
-    res.json(JSON.parse(stdout));
+    try {
+      const data = JSON.parse(stdout);
+      res.json(data);
+    } catch (parseError) {
+      console.error(`JSON parse error: ${parseError}`);
+      res.status(500).send("Invalid JSON output from script.");
+    }
   });
 });
 
