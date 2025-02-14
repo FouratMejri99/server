@@ -7,6 +7,8 @@ const jwt = require("jsonwebtoken");
 
 const app = express();
 
+const User = require("./models/user.models");
+
 // Middleware
 
 const corsOptions = {
