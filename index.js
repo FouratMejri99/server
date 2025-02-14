@@ -84,7 +84,7 @@ app.get("/get-stock-data", (req, res) => {
 
   // Call Python script
   exec(
-    `python3 fetch_data.py ${symbolList.join(" ")}`,
+    `python fetch_data.py ${symbolList.join(" ")}`,
     (error, stdout, stderr) => {
       if (error) {
         console.error(`exec error: ${error.message}`);
