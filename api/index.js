@@ -8,10 +8,12 @@ const jwt = require("jsonwebtoken");
 const app = express();
 
 // Middleware
+const cors = require("cors");
+
 const corsOptions = {
-  origin: process.env.REACT_APP_API_URL,
+  origin: ["https://stockio-topaz.vercel.app", "http://localhost:3000"], // Allow frontend & local testing
   methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true,
+  credentials: true, // Allow cookies & authentication
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
