@@ -9,7 +9,7 @@ const app = express();
 
 // Middleware
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || "http://localhost:5001",
+  origin: process.env.FRONTEND_URL || "https://stockio-topaz.vercel.app",
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
