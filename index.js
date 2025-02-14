@@ -83,7 +83,7 @@ app.get("/get-stock-data", (req, res) => {
   console.log("Fetching stock data for symbols:", symbolList);
 
   // Call Python script
-  const command = `python fetch_data.py ${symbolList.join(" ")}`;
+  const command = `python fetch_data.py`;
   console.log("Executing command:", command);
 
   exec(command, (error, stdout, stderr) => {
