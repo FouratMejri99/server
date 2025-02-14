@@ -71,9 +71,8 @@ app.delete("/delete-user-stock/:symbol", authenticateUser, async (req, res) => {
 });
 
 // Get Real-time Data for a Stock
-app.get("/get-stock-data/:symbol", (req, res) => {
-  const symbol = req.params.symbol;
-  exec(`python fetch_data.py ${symbol}`, (error, stdout, stderr) => {
+app.get("/get-stock-data", (req, res) => {
+  exec(`python fetch_data.py`, (error, stdout, stderr) => {
     if (error) {
       console.error(`exec error: ${error}`);
       return res.status(500).send("Error fetching stock data.");
