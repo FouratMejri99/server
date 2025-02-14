@@ -74,14 +74,6 @@ app.delete("/delete-user-stock/:symbol", authenticateUser, async (req, res) => {
 const { exec } = require("child_process");
 
 app.get("/get-stock-data", (req, res) => {
-  const symbols = req.query.symbols; // "AAPL,GOOGL,MSFT"
-  if (!symbols) {
-    return res.status(400).send("Symbols parameter is required.");
-  }
-
-  const symbolList = symbols.split(","); // ["AAPL", "GOOGL", "MSFT"]
-  console.log("Fetching stock data for symbols:", symbolList);
-
   // Call Python script
   const command = `python fetch_data.py`;
   console.log("Executing command:", command);
