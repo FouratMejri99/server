@@ -75,7 +75,7 @@ app.delete("/delete-user-stock/:symbol", authenticateUser, async (req, res) => {
 app.get("/get-stock-data", (req, res) => {
   const scriptPath = path.join(__dirname, "fetch_data.py");
 
-  const pythonProcess = spawn("python", [scriptPath]);
+  const pythonProcess = spawn("python3", [scriptPath]);
 
   let output = "";
   let errorOutput = "";
