@@ -25,6 +25,180 @@ mongoose
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.log("❌ MongoDB connection error:", err));
 
+// Delete User Stock Route
+app.delete("/delete-user-stock/:symbol", authenticateUser, async (req, res) => {
+  try {
+    const { symbol } = req.params;
+
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Remove the stock symbol from user's stocks list
+    user.stocks = user.stocks.filter((stock) => stock !== symbol);
+    await user.save();
+
+    res.json({ message: "Stock removed successfully", stocks: user.stocks });
+  } catch (error) {
+    console.error("Error deleting user stock:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Get Real-time Data for a Stock
+app.get("/get-stock-data/:symbol", (req, res) => {
+  const symbol = req.params.symbol;
+  exec(`python fetch_data.py ${symbol}`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error}`);
+      return res.status(500).send("Error fetching stock data.");
+    }
+    if (stderr) {
+      console.error(`stderr: ${stderr}`);
+      return res.status(500).send("Error fetching stock data.");
+    }
+
+    res.json(JSON.parse(stdout));
+  });
+});
+
+// Get Sector Allocation for a Stock
+app.get("/get-sector-allocation/:symbol", (req, res) => {
+  const symbol = req.params.symbol;
+
+  exec(`python sector-allocation.py ${symbol}`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error}`);
+      return res.status(500).send("Error fetching sector allocation data.");
+    }
+    if (stderr) {
+      console.error(`stderr: ${stderr}`);
+      return res.status(500).send("Error fetching sector allocation data.");
+    }
+
+    try {
+      // Parse the output as JSON and send it as a response
+      const sectorAllocation = JSON.parse(stdout);
+      res.json(sectorAllocation);
+    } catch (e) {
+      console.error("Error parsing JSON:", e);
+      return res.status(500).send("Error parsing sector allocation data.");
+    }
+  });
+});
+
+// Add Stock Route
+app.post("/add-stock", authenticateUser, async (req, res) => {
+  const { stockData } = req.body;
+
+  if (!stockData) {
+    return res.status(400).json({ message: "Stock data is required" });
+  }
+
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.stocks.push(stockData);
+    await user.save();
+
+    res.json({ message: "Stock added successfully!", stocks: user.stocks });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Register Route
+app.post("/register", async (req, res) => {
+  const { email, username, password, confirmPassword } = req.body;
+
+  if (!email || !username || !password || !confirmPassword) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  if (password !== confirmPassword) {
+    return res.status(400).json({ message: "Passwords do not match" });
+  }
+
+  try {
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ email, username, password: hashedPassword });
+    await newUser.save();
+
+    const token = jwt.sign(
+      { id: newUser._id, email: newUser.email },
+      process.env.SECRET_KEY,
+      { expiresIn: "1h" }
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Registration successful!",
+      token,
+      user: { email: newUser.email, username: newUser.username },
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error during registration" });
+  }
+});
+
+// Login Route
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email and password are required" });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.SECRET_KEY,
+      { expiresIn: "1h" }
+    );
+
+    res.json({
+      success: true,
+      message: "Login successful!",
+      token,
+      user: { email: user.email, username: user.username, stocks: user.stocks },
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error during login" });
+  }
+});
+
+// Get User Stocks Route
+app.get("/get-user-stocks", authenticateUser, async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json({ stocks: user.stocks });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 // Routes
 app.get("/", (req, res) => {
   res.json({ message: "API is working on Vercel!" });
