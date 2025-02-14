@@ -15,7 +15,7 @@ const corsOptions = {
   origin: [
     "https://stockio-topaz.vercel.app",
     "http://localhost:5000",
-    "https://server-pbhy.vercel.app/",
+    "https://server-pbhy.vercel.app",
   ], // Allow frontend & local testing
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true, // Allow cookies & authentication
@@ -71,7 +71,7 @@ app.delete("/delete-user-stock/:symbol", authenticateUser, async (req, res) => {
 });
 
 // Get Real-time Data for a Stock
-app.get("/get-stock-data", (req, res) => {
+app.get("/get-stock-data/:symbol", (req, res) => {
   const symbol = req.params.symbol;
   exec(`python fetch_data.py ${symbol}`, (error, stdout, stderr) => {
     if (error) {
