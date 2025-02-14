@@ -1,10 +1,11 @@
 import json
 import sys
+import time
 
 import requests
 from bs4 import BeautifulSoup
 
-# List of ticker symbols to fetch (Google + 5 more)
+# List of ticker symbols to fetch
 tickers = ["GOOGL", "AAPL", "MSFT", "AMZN", "TSLA", "NVDA"]
 
 # User-Agent header to mimic a real browser
@@ -23,7 +24,13 @@ stocks_data = {}
 # Loop through each ticker symbol and scrape data
 for ticker in tickers:
     url = f'https://finance.yahoo.com/quote/{ticker}'
-    response = requests.get(url, headers=headers)
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching data for {ticker}: {e}", file=sys.stderr)
+        continue  # Skip to the next ticker
+
     soup = BeautifulSoup(response.text, 'html.parser')
 
     # Extract stock price data
@@ -35,20 +42,14 @@ for ticker in tickers:
         "Market Cap": safe_find_text(soup, 'fin-streamer', {'data-field': 'marketCap'}),
     }
 
-    # Extract news headlines
-    news_headlines = []
-    news_section = soup.find('div', {'id': 'mrt-node-quoteNewsStream-0-Stream'})
-    if news_section:
-        for article in news_section.find_all('li', {'class': 'js-stream-content'}):
-            headline = article.find('h3')
-            if headline:
-                news_headlines.append(headline.get_text().strip())
 
     # Store data in dictionary
     stocks_data[ticker] = {
         "Price Data": price_data,
-        "News": news_headlines
+        
     }
+
+    time.sleep(2)  # Add a 2-second delay between requests
 
 # Output the results as JSON
 print(json.dumps(stocks_data, indent=4))
