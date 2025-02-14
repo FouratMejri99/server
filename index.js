@@ -71,30 +71,19 @@ app.delete("/delete-user-stock/:symbol", authenticateUser, async (req, res) => {
 });
 
 // Get Real-time Data for a Stock
-
 app.get("/get-stock-data", (req, res) => {
-  const symbols = req.query.symbols; // Example: ?symbols=GOOGL,AAPL,MSFT
-  if (!symbols) {
-    return res.status(400).json({ error: "No stock symbols provided." });
-  }
-
-  exec(`python fetch_data.py ${symbols}`, (error, stdout, stderr) => {
+  const symbol = req.params.symbol;
+  exec(`python fetch_data.py ${symbol}`, (error, stdout, stderr) => {
     if (error) {
-      console.error(`Exec error: ${error}`);
-      return res.status(500).json({ error: "Error fetching stock data." });
+      console.error(`exec error: ${error}`);
+      return res.status(500).send("Error fetching stock data.");
     }
     if (stderr) {
-      console.error(`Stderr: ${stderr}`);
-      return res.status(500).json({ error: "Error fetching stock data." });
+      console.error(`stderr: ${stderr}`);
+      return res.status(500).send("Error fetching stock data.");
     }
 
-    try {
-      const data = JSON.parse(stdout);
-      res.json(data);
-    } catch (parseError) {
-      console.error(`JSON parse error: ${parseError}`);
-      res.status(500).json({ error: "Error parsing stock data." });
-    }
+    res.json(JSON.parse(stdout));
   });
 });
 
