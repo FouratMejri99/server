@@ -200,7 +200,10 @@ app.post("/login", async (req, res) => {
       user: { email: user.email, username: user.username, stocks: user.stocks },
     });
   } catch (error) {
-    res.status(500).json({ message: "Error during login" });
+    console.error("🔥 LOGIN ERROR:", error); // 🔴 This will log the exact issue!
+    res
+      .status(500)
+      .json({ message: "Error during login", error: error.message });
   }
 });
 
