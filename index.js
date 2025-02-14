@@ -83,28 +83,28 @@ app.get("/get-stock-data", (req, res) => {
   console.log("Fetching stock data for symbols:", symbolList);
 
   // Call Python script
-  exec(
-    `python fetch_data.py ${symbolList.join(" ")}`,
-    (error, stdout, stderr) => {
-      if (error) {
-        console.error(`exec error: ${error.message}`);
-        console.error(`Full error: ${error}`);
-        return res.status(500).send(`Error executing script: ${error.message}`);
-      }
-      if (stderr) {
-        console.error(`stderr: ${stderr}`);
-        return res.status(500).send(`Script error: ${stderr}`);
-      }
+  const command = `python fetch_data.py ${symbolList.join(" ")}`;
+  console.log("Executing command:", command);
 
-      try {
-        const data = JSON.parse(stdout.trim());
-        res.json(data);
-      } catch (parseError) {
-        console.error(`JSON parse error: ${parseError}`);
-        res.status(500).send("Invalid JSON output from script.");
-      }
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error.message}`);
+      console.error(`Full error: ${error}`);
+      return res.status(500).send(`Error executing script: ${error.message}`);
     }
-  );
+    if (stderr) {
+      console.error(`stderr: ${stderr}`);
+      return res.status(500).send(`Script error: ${stderr}`);
+    }
+
+    try {
+      const data = JSON.parse(stdout.trim());
+      res.json(data);
+    } catch (parseError) {
+      console.error(`JSON parse error: ${parseError}`);
+      res.status(500).send("Invalid JSON output from script.");
+    }
+  });
 });
 // Get Sector Allocation for a Stock
 app.get("/get-sector-allocation/:symbol", (req, res) => {
