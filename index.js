@@ -98,10 +98,6 @@ app.get("/get-stock-data", (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
 // Get Sector Allocation for a Stock
 app.get("/get-sector-allocation/:symbol", (req, res) => {
   const symbol = req.params.symbol;
