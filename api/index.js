@@ -9,7 +9,7 @@ const app = express();
 
 // Middleware
 const corsOptions = {
-  origin: env.process.REACT_APP_API_URL,
+  origin: process.env.REACT_APP_API_URL,
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
