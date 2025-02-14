@@ -1,48 +1,56 @@
 import json
 import sys
-import yfinance as yf
+
 import requests
 from bs4 import BeautifulSoup
 
-# Get ticker symbol from command-line argument
-ticker = "AAPL"
+# Read symbols from command-line arguments
+if len(sys.argv) < 2:
+    print(json.dumps({"error": "No stock symbols provided."}))
+    sys.exit(1)
 
-# Use yfinance to get stock data
-data = yf.Ticker(ticker)
-historical_data = data.history(period="1d", interval="1m")
+tickers = sys.argv[1].split(",")  # Get symbols from arguments (comma-separated)
 
-# Convert Timestamp to string
-historical_data = historical_data.reset_index()
-historical_data["Datetime"] = historical_data["Datetime"].dt.strftime("%Y-%m-%d %H:%M:%S")
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+}
 
-# Format numbers to 2 decimal places
-result = [
-    {
-        "Datetime": row["Datetime"],
-        "Open": round(float(row["Open"]), 2),
-        "High": round(float(row["High"]), 2),
-        "Low": round(float(row["Low"]), 2),
-        "Close": round(float(row["Close"]), 2),
-        "Volume": int(row["Volume"]),
+def safe_find_text(soup, tag, attrs):
+    element = soup.find(tag, attrs)
+    return element.text.strip() if element else "N/A"
+
+stocks_data = {}
+
+for ticker in tickers:
+    url = f'https://finance.yahoo.com/quote/{ticker}'
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code != 200:
+        stocks_data[ticker] = {"error": "Failed to fetch data"}
+        continue
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    price_data = {
+        "Current Price": safe_find_text(soup, 'span', {'data-testid': 'qsp-price'}),
+        "Previous Close": safe_find_text(soup, 'fin-streamer', {'data-field': 'regularMarketPreviousClose'}),
+        "Open": safe_find_text(soup, 'fin-streamer', {'data-field': 'regularMarketOpen'}),
+        "Volume": safe_find_text(soup, 'fin-streamer', {'data-field': 'regularMarketVolume'}),
+        "Market Cap": safe_find_text(soup, 'fin-streamer', {'data-field': 'marketCap'}),
     }
-    for _, row in historical_data.iterrows()
-]
 
-# Scrape additional data (for example, news headlines) using BeautifulSoup
-url = f'https://finance.yahoo.com/quote/{ticker}'  # Yahoo Finance webpage for the ticker
-response = requests.get(url)
-soup = BeautifulSoup(response.text, 'html.parser')
+    news_headlines = []
+    news_section = soup.find('div', {'id': 'mrt-node-quoteNewsStream-0-Stream'})
+    if news_section:
+        for article in news_section.find_all('li', {'class': 'js-stream-content'}):
+            headline = article.find('h3')
+            if headline:
+                news_headlines.append(headline.get_text().strip())
 
-# Example: Get stock news headlines
-news_headlines = []
-for article in soup.find_all('li', {'class': 'js-stream-content'}):
-    headline = article.find('h3')
-    if headline:
-        news_headlines.append(headline.get_text())
+    stocks_data[ticker] = {
+        "Price Data": price_data,
+        "News": news_headlines
+    }
 
-# Add news headlines to the result
-result.append({"News": news_headlines})
-
-# Output as JSON
-print(json.dumps(result))
+print(json.dumps(stocks_data, indent=4))
 sys.stdout.flush()
