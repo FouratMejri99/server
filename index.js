@@ -8,7 +8,6 @@ const jwt = require("jsonwebtoken");
 const app = express();
 
 // Middleware
-const cors = require("cors");
 
 const corsOptions = {
   origin: ["https://stockio-topaz.vercel.app", "http://localhost:3000"], // Allow frontend & local testing
