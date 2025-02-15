@@ -1,9 +1,17 @@
+const chrome = require("chrome-aws-lambda"); // Use require
+// Import chrome-aws-lambda
 const puppeteer = require("puppeteer");
 
 const tickers = ["GOOGL", "AAPL", "MSFT", "AMZN", "TSLA", "NVDA"];
 
 (async () => {
-  const browser = await puppeteer.launch({ headless: "new" });
+  // Configure Puppeteer to use the executable path from chrome-aws-lambda
+  const browser = await puppeteer.launch({
+    headless: true,
+    executablePath: await chrome.executablePath,
+    args: chrome.args,
+    defaultViewport: chrome.defaultViewport,
+  });
   const page = await browser.newPage();
 
   let stocksData = {};
