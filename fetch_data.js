@@ -8,6 +8,7 @@ const tickers = ["GOOGL", "AAPL", "MSFT", "AMZN", "TSLA", "NVDA"];
     headless: true,
     executablePath: await chrome.executablePath,
     args: chrome.args,
+    ignoreDefaultArgs: ["--disable-extensions"],
     defaultViewport: chrome.defaultViewport,
   });
   const page = await browser.newPage();
