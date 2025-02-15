@@ -3,10 +3,7 @@ const puppeteer = require("puppeteer");
 const tickers = ["GOOGL", "AAPL", "MSFT", "AMZN", "TSLA", "NVDA"];
 
 (async () => {
-  const browser = await puppeteer.launch({
-    headless: false,
-    args: ["--no-sandbox"],
-  });
+  const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
   let stocksData = {};
