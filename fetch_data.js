@@ -25,9 +25,7 @@ const tickers = ["GOOGL", "AAPL", "MSFT", "AMZN", "TSLA", "NVDA"];
 
         return {
           "Current Price": getText('[data-testid="qsp-price"]'),
-          "Previous Close": getText(
-            '[data-field="regularMarketPreviousClose"]'
-          ),
+
           Open: getText('[data-field="regularMarketOpen"]'),
           Volume: getText('[data-field="regularMarketVolume"]'),
           "Market Cap": getText('[data-field="marketCap"]'),
