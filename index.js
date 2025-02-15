@@ -73,30 +73,33 @@ app.delete("/delete-user-stock/:symbol", authenticateUser, async (req, res) => {
 
 // Get Real-time Data for a Stock
 app.get("/get-stock-data", (req, res) => {
-  const scriptPath = path.join(__dirname, "fetch_data.py");
+  // Path to your fetch_data.js script
+  const scriptPath = path.join(__dirname, "fetch_data.js");
 
-  const pythonProcess = spawn("python3", [scriptPath]);
+  // Spawn the child process to run fetch_data.js using node
+  const nodeProcess = spawn("node", [scriptPath]);
 
   let output = "";
   let errorOutput = "";
 
-  pythonProcess.stdout.on("data", (data) => {
+  nodeProcess.stdout.on("data", (data) => {
     output += data.toString();
   });
 
-  pythonProcess.stderr.on("data", (data) => {
+  nodeProcess.stderr.on("data", (data) => {
     errorOutput += data.toString();
   });
 
-  pythonProcess.on("close", (code) => {
+  nodeProcess.on("close", (code) => {
     if (code !== 0) {
-      console.error(`Python script exited with code ${code}`);
+      console.error(`Node script exited with code ${code}`);
       return res
         .status(500)
         .send(`Script error: ${errorOutput || "Unknown error"}`);
     }
 
     try {
+      // Parse the output as JSON
       const jsonData = JSON.parse(output.trim());
       res.json(jsonData);
     } catch (parseError) {
