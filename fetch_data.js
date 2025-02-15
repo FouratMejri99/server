@@ -1,10 +1,14 @@
-const puppeteer = require("puppeteer");
+const chrome = require("chrome-aws-lambda");
+const puppeteer = require("puppeteer-core");
 
 const tickers = ["GOOGL", "AAPL", "MSFT", "AMZN", "TSLA", "NVDA"];
 
-(async () => {
+module.exports = async (req, res) => {
   const browser = await puppeteer.launch({
     headless: true,
+    executablePath: await chrome.executablePath,
+    args: chrome.args,
+    defaultViewport: chrome.defaultViewport,
   });
   const page = await browser.newPage();
 
@@ -43,5 +47,5 @@ const tickers = ["GOOGL", "AAPL", "MSFT", "AMZN", "TSLA", "NVDA"];
 
   await browser.close();
 
-  console.log(JSON.stringify(stocksData, null, 4));
-})();
+  res.status(200).json(stocksData);
+};
