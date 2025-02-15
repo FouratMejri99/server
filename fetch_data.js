@@ -19,14 +19,18 @@ exports.handler = async (event, context, callback) => {
     let page = await browser.newPage();
     let stocksData = {};
 
+    const userAgent =
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
+    await page.setUserAgent(userAgent);
+
     for (let ticker of tickers) {
       const url = `https://finance.yahoo.com/quote/${ticker}`;
 
       try {
-        // Navigate to the Yahoo Finance page
+        console.log(`Navigating to ${url}...`);
         await page.goto(url, { waitUntil: "networkidle2" });
 
-        // Scrape the data
+        console.log(`Scraping data for ${ticker}...`);
         const stockData = await page.evaluate(() => {
           const getText = (selector) => {
             const el = document.querySelector(selector);
@@ -34,20 +38,24 @@ exports.handler = async (event, context, callback) => {
           };
 
           return {
-            "Current Price": getText('[data-testid="qsp-price"]'),
-            Open: getText('[data-field="regularMarketOpen"]'),
-            Volume: getText('[data-field="regularMarketVolume"]'),
-            "Market Cap": getText('[data-field="marketCap"]'),
+            "Current Price": getText(
+              'fin-streamer[data-field="regularMarketPrice"]'
+            ),
+            Open: getText('fin-streamer[data-field="regularMarketOpen"]'),
+            Volume: getText('fin-streamer[data-field="regularMarketVolume"]'),
+            "Market Cap": getText('fin-streamer[data-field="marketCap"]'),
           };
         });
 
+        console.log(`Data for ${ticker}:`, stockData);
         stocksData[ticker] = { "Price Data": stockData };
       } catch (error) {
         console.error(`Error fetching data for ${ticker}: ${error.message}`);
       }
 
-      // Wait for 2 seconds before the next request
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Add a random delay between 2 and 5 seconds
+      const delay = Math.floor(Math.random() * 3000) + 2000; // Random delay between 2-5 seconds
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
     console.log(JSON.stringify(stocksData, null, 4));
