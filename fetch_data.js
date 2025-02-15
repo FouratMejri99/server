@@ -3,11 +3,11 @@ const chromium = require("@sparticuz/chrome-aws-lambda");
 
 const tickers = ["GOOGL", "AAPL", "MSFT", "AMZN", "TSLA", "NVDA"];
 
-exports.handler = async (event, context, callback) => {
-  let result = null;
+exports.handler = async (event, context) => {
   let browser = null;
 
   try {
+    // Launch the browser
     browser = await chromium.puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
@@ -16,8 +16,8 @@ exports.handler = async (event, context, callback) => {
       ignoreHTTPSErrors: true,
     });
 
-    let page = await browser.newPage();
-    let stocksData = {};
+    const page = await browser.newPage();
+    const stocksData = {};
 
     const userAgent =
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
@@ -28,7 +28,7 @@ exports.handler = async (event, context, callback) => {
 
       try {
         console.log(`Navigating to ${url}...`);
-        await page.goto(url, { waitUntil: "networkidle2" });
+        await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
 
         console.log(`Scraping data for ${ticker}...`);
         const stockData = await page.evaluate(() => {
@@ -58,9 +58,16 @@ exports.handler = async (event, context, callback) => {
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
-    console.log(JSON.stringify(stocksData, null, 4));
+    return {
+      statusCode: 200,
+      body: JSON.stringify(stocksData, null, 4),
+    };
   } catch (error) {
     console.error(`Error during scraping: ${error.message}`);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Internal Server Error" }),
+    };
   } finally {
     // Close the browser
     if (browser) {
