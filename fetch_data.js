@@ -1,11 +1,13 @@
-const puppeteer = require("puppeteer");
-const chrome = require("chrome-aws-lambda");
+const puppeteer = require("puppeteer-core");
 
 const tickers = ["GOOGL", "AAPL", "MSFT", "AMZN", "TSLA", "NVDA"];
 
 (async () => {
   const browser = await puppeteer.launch({
+    executablePath: await chrome.executablePath,
     ignoreDefaultArgs: ["--disable-extensions"],
+    headless: false,
+    args: ["--no-sandbox"],
   });
   const page = await browser.newPage();
 
