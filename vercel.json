@@ -1,5 +1,5 @@
 {
   "version": 2,
-  "builds": [{ "src": "fetch_data.py", "use": "@vercel/python" }],
-  "routes": [{ "src": "/(.*)", "dest": "/fetch_data.py" }]
+  "builds": [{ "src": "index.js", "use": "@vercel/node" }],
+  "routes": [{ "src": "/(.*)", "dest": "/index.js" }]
 }
