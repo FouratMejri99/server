@@ -3,11 +3,11 @@ const chromium = require("@sparticuz/chrome-aws-lambda");
 
 const tickers = ["GOOGL", "AAPL", "MSFT", "AMZN", "TSLA", "NVDA"];
 
-exports.handler = async (event, context) => {
+(async () => {
   let browser = null;
 
   try {
-    // Launch the browser
+    console.log("Launching browser...");
     browser = await chromium.puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
@@ -16,6 +16,7 @@ exports.handler = async (event, context) => {
       ignoreHTTPSErrors: true,
     });
 
+    console.log("Browser launched successfully.");
     const page = await browser.newPage();
     const stocksData = {};
 
@@ -30,7 +31,7 @@ exports.handler = async (event, context) => {
         console.log(`Navigating to ${url}...`);
         await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
 
-        console.log(`Scraping data for ${ticker}...`);
+        console.log(`Page loaded. Scraping data for ${ticker}...`);
         const stockData = await page.evaluate(() => {
           const getText = (selector) => {
             const el = document.querySelector(selector);
@@ -51,27 +52,26 @@ exports.handler = async (event, context) => {
         stocksData[ticker] = { "Price Data": stockData };
       } catch (error) {
         console.error(`Error fetching data for ${ticker}: ${error.message}`);
+        stocksData[ticker] = { "Price Data": "Error fetching data" };
       }
 
       // Add a random delay between 2 and 5 seconds
       const delay = Math.floor(Math.random() * 3000) + 2000; // Random delay between 2-5 seconds
+      console.log(`Waiting for ${delay} ms before next request...`);
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify(stocksData, null, 4),
-    };
+    console.log(
+      "Scraping completed. Results:",
+      JSON.stringify(stocksData, null, 4)
+    );
   } catch (error) {
     console.error(`Error during scraping: ${error.message}`);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Internal Server Error" }),
-    };
   } finally {
     // Close the browser
     if (browser) {
+      console.log("Closing browser...");
       await browser.close();
     }
   }
-};
+})();
