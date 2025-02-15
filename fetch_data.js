@@ -1,11 +1,9 @@
-const puppeteer = require("puppeteer-core");
+const puppeteer = require("puppeteer");
 
 const tickers = ["GOOGL", "AAPL", "MSFT", "AMZN", "TSLA", "NVDA"];
 
 (async () => {
   const browser = await puppeteer.launch({
-    executablePath: await chrome.executablePath,
-    ignoreDefaultArgs: ["--disable-extensions"],
     headless: false,
     args: ["--no-sandbox"],
   });
