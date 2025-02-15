@@ -1,11 +1,15 @@
-const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-core");
+const chromium = require("chrome-aws-lambda");
 
 const tickers = ["GOOGL", "AAPL", "MSFT", "AMZN", "TSLA", "NVDA"];
 
-(async () => {
-  const browser = await puppeteer.launch({ headless: true });
-  const page = await browser.newPage();
+async function scrapeStockData() {
+  const browser = await puppeteer.launch({
+    executablePath: await chromium.executablePath,
+    headless: chromium.headless,
+  });
 
+  const page = await browser.newPage();
   let stocksData = {};
 
   for (let ticker of tickers) {
@@ -13,9 +17,6 @@ const tickers = ["GOOGL", "AAPL", "MSFT", "AMZN", "TSLA", "NVDA"];
 
     try {
       await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
-      await page.setUserAgent(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-      );
 
       const stockData = await page.evaluate(() => {
         const getText = (selector) => {
@@ -40,6 +41,7 @@ const tickers = ["GOOGL", "AAPL", "MSFT", "AMZN", "TSLA", "NVDA"];
   }
 
   await browser.close();
+  return stocksData;
+}
 
-  console.log(JSON.stringify(stocksData, null, 4));
-})();
+module.exports = { scrapeStockData };

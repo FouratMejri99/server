@@ -7,7 +7,8 @@ const jwt = require("jsonwebtoken");
 const { spawn } = require("child_process");
 const path = require("path");
 const app = express();
-
+const path = require("path");
+const { scrapeStockData } = require("./fetch_data"); // Import your scraping function
 const User = require("./models/user.models");
 
 // Middleware
@@ -72,41 +73,15 @@ app.delete("/delete-user-stock/:symbol", authenticateUser, async (req, res) => {
 });
 
 // Get Real-time Data for a Stock
-app.get("/get-stock-data", (req, res) => {
-  // Path to your fetch_data.js script
-  const scriptPath = path.join(__dirname, "fetch_data.js");
 
-  // Spawn the child process to run fetch_data.js using node
-  const nodeProcess = spawn("node", [scriptPath]);
-
-  let output = "";
-  let errorOutput = "";
-
-  nodeProcess.stdout.on("data", (data) => {
-    output += data.toString();
-  });
-
-  nodeProcess.stderr.on("data", (data) => {
-    errorOutput += data.toString();
-  });
-
-  nodeProcess.on("close", (code) => {
-    if (code !== 0) {
-      console.error(`Node script exited with code ${code}`);
-      return res
-        .status(500)
-        .send(`Script error: ${errorOutput || "Unknown error"}`);
-    }
-
-    try {
-      // Parse the output as JSON
-      const jsonData = JSON.parse(output.trim());
-      res.json(jsonData);
-    } catch (parseError) {
-      console.error(`JSON Parse Error: ${parseError}`);
-      res.status(500).send("Invalid JSON output from script.");
-    }
-  });
+app.get("/get-stock-data", async (req, res) => {
+  try {
+    const stockData = await scrapeStockData(); // Call the scraping function
+    res.json(stockData);
+  } catch (error) {
+    console.error(`Error fetching stock data: ${error.message}`);
+    res.status(500).send("Error fetching stock data.");
+  }
 });
 
 // Get Sector Allocation for a Stock
