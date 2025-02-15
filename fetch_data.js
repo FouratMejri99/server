@@ -8,12 +8,15 @@ const tickers = ["GOOGL", "AAPL", "MSFT", "AMZN", "TSLA", "NVDA"];
 
   try {
     console.log("Launching browser...");
-    browser = await chromium.puppeteer.launch({
+
+    // Configure Puppeteer for Render
+    browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
+      executablePath: await chromium.executablePath, // Use the Chrome executable from @sparticuz/chrome-aws-lambda
       headless: chromium.headless,
       ignoreHTTPSErrors: true,
+      userDataDir: "/tmp/.cache/puppeteer", // Use Render's writable directory
     });
 
     console.log("Browser launched successfully.");
