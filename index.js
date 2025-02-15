@@ -4,8 +4,6 @@ const bcrypt = require("bcryptjs");
 const cors = require("cors");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
-const { spawn } = require("child_process");
-const path = require("path");
 const app = express();
 const path = require("path");
 const { scrapeStockData } = require("./fetch_data"); // Import your scraping function
@@ -76,7 +74,7 @@ app.delete("/delete-user-stock/:symbol", authenticateUser, async (req, res) => {
 
 app.get("/get-stock-data", async (req, res) => {
   try {
-    const stockData = await scrapeStockData(); // Call the scraping function
+    const stockData = await scrapeStockData();
     res.json(stockData);
   } catch (error) {
     console.error(`Error fetching stock data: ${error.message}`);

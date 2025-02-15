@@ -7,6 +7,7 @@ async function scrapeStockData() {
   const browser = await puppeteer.launch({
     executablePath: await chromium.executablePath,
     headless: chromium.headless,
+    args: chromium.args,
   });
 
   const page = await browser.newPage();
