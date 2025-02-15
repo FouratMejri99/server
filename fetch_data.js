@@ -1,9 +1,9 @@
+const puppeteer = require("puppeteer");
 const chrome = require("chrome-aws-lambda");
-const puppeteer = require("puppeteer-core");
 
 const tickers = ["GOOGL", "AAPL", "MSFT", "AMZN", "TSLA", "NVDA"];
 
-module.exports = async (req, res) => {
+(async () => {
   const browser = await puppeteer.launch({
     headless: true,
     executablePath: await chrome.executablePath,
@@ -47,5 +47,5 @@ module.exports = async (req, res) => {
 
   await browser.close();
 
-  res.status(200).json(stocksData);
-};
+  console.log(JSON.stringify(stocksData, null, 4));
+})();
